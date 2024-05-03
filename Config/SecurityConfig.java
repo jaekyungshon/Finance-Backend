@@ -48,6 +48,7 @@ public class SecurityConfig {
                         authorize
                                 .requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/api/**").permitAll()
+                                .requestMatchers("/api/chatbot").authenticated() // 인증하지 않고 접근하려하면 401 리턴
                 )
                 .addFilterBefore(
                         new JwtFilter(tokenProvider),
