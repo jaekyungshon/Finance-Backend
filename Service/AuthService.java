@@ -29,9 +29,6 @@ public class AuthService {
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    //private final SmtpEmailService smtpEmailService;
-    private final MemberService memberService;
-
     @Transactional
     public MemberResponseDto signup(MemberRequestDto memberRequestDto) {
         if (memberRepository.existsByUsername(memberRequestDto.getUsername())) {
@@ -105,23 +102,5 @@ public class AuthService {
         // 토큰 발급
         return tokenResDto;
     }
-    /*
-        @Transactional
-        public void issueTempPassword(String username, String nickname) {
-            Member member = memberService.findMemberByUsername(username);
 
-            if(!member.getNickname().equals(nickname)){
-                throw new RuntimeException("입력한 닉네임이 사용자의 닉네임과 일치하지 않습니다.");
-            }
-
-            String tempPassword = generateTempPassword();
-            member.setPassword(passwordEncoder.encode(tempPassword));
-            memberRepository.save(member);
-
-            smtpEmailService.sendTempPassword(member.getUsername(), tempPassword);
-        }
-    */
-    private String generateTempPassword() {
-        return UUID.randomUUID().toString().substring(0, 8);
-    }
 }

@@ -2,7 +2,6 @@ package com.capstone.finance.Service;
 
 import com.capstone.finance.Entity.Member;
 import com.capstone.finance.DAO.MemberRepository;
-import com.capstone.finance.DTO.Member.MemberResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -39,13 +38,5 @@ public class CustomUserDetailsService implements UserDetailsService {
                 Collections.singleton(grantedAuthority)
         );
     }
-
-    public MemberResponseDto findMemberInfoByUsername(String username) {
-        Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("유저 정보가 존재하지 않습니다"));
-
-        return MemberResponseDto.toDto(member);
-    }
-
 
 }
