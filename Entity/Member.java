@@ -25,14 +25,11 @@ public class Member implements UserDetails {
     @Column(name = "member_id")
     private Long id;
 
-    //@Column(updatable = false,unique = true,nullable = false)
+    @Column(name = "username", nullable = false)
     private String username;
 
     @Column(name = "password", nullable = false)
     private String password;
-
-    //@Column(nullable = false)
-    //private Integer state;
 
     @Column(name = "nickname")
     private String nickname;
@@ -40,13 +37,7 @@ public class Member implements UserDetails {
     @Column(name = "email")
     private String email;
 
-    //@Column(name = "findQuestion")
-    //private Integer findQuesNum;
-
-    //@Column(name = "findAnswer")
-    //private String findAnswer;
-
-    //@Column(nullable = false)
+    @Column(nullable = false)
     private boolean enabled;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
