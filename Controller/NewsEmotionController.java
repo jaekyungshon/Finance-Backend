@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/news-emotions")
+@RequestMapping("/api/home/emotion")
 public class NewsEmotionController {
 
     private final NewsEmotionService newsEmotionService;
