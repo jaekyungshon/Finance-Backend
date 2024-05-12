@@ -38,7 +38,12 @@ class ChatEngine:
             curs.execute(sql, (username, text))
         self.conn.commit()
         print(f"\t[레코드삽입] 정상 완료")
-            
+    
+    def update_record_res_msg(self):
+        with self.conn.cursor() as curs:
+            sql="UPDATE chatbot_history SET res_msg = '서버 오류로 인해 답변을 하지 못하게 되었습니다. 관리자에게 문의해주세요.' ORDER BY id DESC LIMIT 1";
+            curs.execute(sql)
+        self.conn.commit()
         
     ## 사용자가 입력한 질문이 어떤 유형인지 파악하는 함수 ##
     def chatgpt_query_flag(self, query):
@@ -59,7 +64,8 @@ class ChatEngine:
             messages=messages
         )
         result=response.choices[0].message.content
-        result=result[result.index('A')+2:]
+        #if 'A' in result:
+        #    result=result[result.index('A')+2:]
         #print(result)
         if ('예측성' in result) or ('정보성' in result) or ('판단성' in result):
             return 1
@@ -91,7 +97,7 @@ class ChatEngine:
         )
         result=response.choices[0].message.content
         #print(result)
-        if 'true' in result:
+        if 'true' in result or 'True' in result:
             return False # 직접적인 투자 질문인 경우
         else:
             return True # 아닐 경우
@@ -110,7 +116,7 @@ class ChatEngine:
     
     ## prompt 최적화 함수 (self-prompt) ##
     def optimizing_prompt(self, query):
-        """ 여러번 self-prompt 기법을 사용하여 테스트 해보지 않았기에, 1번의 요청을 통한 결과를 바로 이용. """
+        """ 여러번 self-prompt 요청 테스트 해보지 않았기에, 1번의 요청을 통한 결과를 바로 이용. """
         
         messages=[{"role": "system", "content": "You are a helpful assistant."}]
         messages.append({"role":"user", "content": 
@@ -132,6 +138,10 @@ class ChatEngine:
     ## 동적인 prompt에 따른 동적 데이터 처리 함수(예측성/정보성/판단성 질문) ##
     def dynamic_setting_process_data(self, query):
         chart_datas, news_datas, financial_datas = self.data_engine.get_datas(query,1) # (사용자 원본 질문 사용)
+        # 타겟기업명 못찾았을 경우 예외처리
+        if chart_datas=="" and news_datas=="" and financial_datas=="":
+            return []
+        
         conditions_count=[chart_datas.count("")<len(chart_datas), news_datas.count("")<len(news_datas), 
                             financial_datas.count("")<len(financial_datas)] # 각 데이터 리스트의 내용이 존재하는지 조건
                     
@@ -189,33 +199,34 @@ class ChatEngine:
             messages=[{"role": "system", "content": "You are a helpful assistant."}]
             messages.append({"role":"user", "content": msg_item})
             
-            openai = OpenAI(api_key="api 키")
+            openai = OpenAI(api_key="api키")
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=messages
             )
             tmp_result_list.append(response.choices[0].message.content)
         
-        # 최종 답변 얻기(분석 시간이 chatgpt가 오래 걸림.)
-        wait_flag=True
-        while wait_flag:
-            messages=[{"role": "system", "content": "You are a helpful assistant."}]
-            messages.append({"role":"user", "content": 
-                f"'{query}' 질문에 대한 분석을 다 마쳤으면, 해당 질문에 대한 최종 답변을 제공하시기 바랍니다."})
+        # 최종 답변 얻기(분석 시간이 오래 걸려, 기다리라는 답변이 왔을 경우)
+        if '기다' in tmp_result_list[-1] or '잠시' in tmp_result_list[-1]:
+            wait_flag=True
+            while wait_flag:
+                messages=[{"role": "system", "content": "You are a helpful assistant."}]
+                messages.append({"role":"user", "content": 
+                    f"'{query}' 질문에 대한 분석을 다 마쳤으면, 해당 질문에 대한 최종 답변을 제공하시기 바랍니다."})
+                    
+                openai = OpenAI(api_key="api키")
+                response = openai.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=messages
+                )
                 
-            openai = OpenAI(api_key="api키")
-            response = openai.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=messages
-            )
-            
-            result=response.choices[0].message.content
-            if '기다' in result or '잠시' in result:
-                print(f"[Chatgpt 요청 진행중] ... ")
-                time.sleep(3)
-            else:
-                tmp_result_list.append(response.choices[0].message.content)
-                break
+                result=response.choices[0].message.content
+                if '기다' in result or '잠시' in result:
+                    print(f"\t\t[Chatgpt 요청 진행중] ... ")
+                    time.sleep(2)
+                else:
+                    tmp_result_list.append(response.choices[0].message.content)
+                    break
         
         return tmp_result_list[-1]
     
@@ -238,7 +249,7 @@ class ChatEngine:
             ## 2. 사용자 질문 파악 : 직접적인 투자와 관련된 질문인가? ##
             new_record_query = chatbot_history_records_df['req_msg'].iloc[-1] # 질문 내용
             record_id = chatbot_history_records_df['id'].iloc[-1] # 구별키
-            print(f"\trecord_id: {record_id}")
+            print(f"\t\trecord_id: {record_id}")
             flag = self.chatgpt_flag_invest_action(new_record_query)
                 
             if not flag:
@@ -282,17 +293,17 @@ class ChatEngine:
                                           # chatgpt 반환 최적화 질문이 질문 형식으로 안나오는 경우가 있음. 이를 위해 사용 여부 결정
             
             optimize_query = optimize_query.replace("'", "").replace('"', "")
-            if optimize_query[-1]=="?":
+            if optimize_query[-1]=="?": # 최적화 prompt가 질문형식이면
                 use_flag_optimize_query=True
                 with self.conn.cursor() as curs:
-                    sql="INSERT INTO optimize_prompt (prev_req_msg, result_msg) VALUES (%s, %s)"
+                    sql = """INSERT INTO optimize_prompt (prev_req_msg, result_msg) VALUES (%s, %s)"""
                     curs.execute(sql, (new_record_query, optimize_query))
                 self.conn.commit()
-            else:
-                with self.conn.cursor() as curs:
-                    sql="INSERT INTO optimize_prompt (prev_req_msg, result_msg) VALUES (%s, %s)"
-                    curs.execute(sql, (new_record_query, new_record_query))
-                self.conn.commit()
+            # else: # 문장형식이면.
+            #     with self.conn.cursor() as curs:
+            #         sql="INSERT INTO optimize_prompt (prev_req_msg, result_msg) VALUES (%s, %s)"
+            #         curs.execute(sql, (new_record_query, new_record_query))
+            #     self.conn.commit()
             
             print(f"\t\t[prompt 최적화][TB:optimize_prompt] 최적화 및 DB 저장 완료. '데이터 동적 처리' 프로세스 진행.")
             print(f"\t\t\t use query: '{optimize_query if use_flag_optimize_query else new_record_query}'")
@@ -313,6 +324,19 @@ class ChatEngine:
             else: # 절차성 (데이터 필요없음)
                 #print(f"\t\ttext3: {new_record_query}")
                 text=[optimize_query] if use_flag_optimize_query else [new_record_query]
+            # 타겟 기업명 못찾아, 메시지 준비를 못하는 경우
+            if text==[]:
+                with self.conn.cursor() as curs:
+                    sql=f"""
+                    UPDATE chatbot_history
+                    SET res_msg='타겟 기업들을 찾지 못했습니다. 다시 한번 질문을 저에게 요청해주세요.'
+                    WHERE id='{record_id}'
+                    """
+                    curs.execute(sql)
+                self.conn.commit()
+                print(f"\t\t[데이터 동적 처리] 타겟 기업 리스트 부재 예외 처리 완료")
+                return True
+            # 타겟 기업명 찾아, 메시지 준비된 경우
             print(f"\t\t[데이터 동적 처리] 사용자 prompt에 따른 동적 처리 완료(flag={flag}) / chatgpt요청개수예상: {len(text)}개")
                 
             ## 7. Chatgpt에게 요청하고, 이에 따른 답변 받기##

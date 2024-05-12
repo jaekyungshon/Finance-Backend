@@ -87,7 +87,7 @@ class LearnerEngine:
         # 조건부 리턴
         # false가 출력? => return "false"
         # 정상 내용 출력? => return 해당답변
-        if "false" in result:
+        if "false" in result or "False" in result:
             return "false"
         else:
             for _,row in df1.iterrows():

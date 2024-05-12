@@ -4,6 +4,9 @@
 """
 
 # http://127.0.0.1:5000
+# http://www.finance.com:5000
+# http://localhost:3000 -> http://www.finance.com
+# http://localhost:8080 -> http://www.finance.com
 
 from flask import Flask, request, jsonify
 from chatbot_main import ChatEngine
@@ -35,9 +38,10 @@ def chatbot_request_process():
         print(f"\t[Server][Flask][Response][{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Response-status: 200\n")
         return jsonify({'state': 'true'}), 200 # 메시지(JSON형식), 상태코드
     else:
+        engine.update_record_res_msg() # 서버 오류로 인한 답변 불가 처리
         print(f"\t[Server][Flask][Response][{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Response-status: 400\n")
         return jsonify({'state': 'false'}), 400
     
 if __name__ == '__main__':
-    app.run(debug=True) # 개발서버
-    #app.run(debug=False) # 운영서버
+    app.run(debug=True) # 개발중
+    #app.run(debug=False) # 운영

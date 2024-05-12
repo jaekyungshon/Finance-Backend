@@ -7,7 +7,6 @@ from openai import OpenAI
 """
 예측성/정보성/판단성 질문에 대한 데이터를 어떤 방법으로 동적 처리를 해야하는가?
 => 핵심 기준: '비교가 필요한 질문인가?'
-"""
 
 
 ### 데이터 관리 클래스 ###
@@ -152,7 +151,7 @@ class DataManager:
             # 프로세스 1) 비교가 필요한 질문인가? - 문자열 필터링
             filter_flag,target_company_names=self.query_filter(query=query)
             if not filter_flag: # 원하는 답변을 못받을 경우
-                return ""
+                return "","",""
             
             #has_flag_chart=True if ('주가' in query or '가격' in query) else False # 차트데이터가 필요한가
             chart_datas=[] # 존재 차트데이터를 text형식으로 삽입하는 리스트. (target_companys 개수 맞춰서)
