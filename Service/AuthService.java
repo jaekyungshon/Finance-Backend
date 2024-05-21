@@ -63,9 +63,9 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(TokenReqDto tokenReqDto) {
+    public void logout(String token) {
         // 로그아웃하려는 사용자의 정보를 가져옴
-        Authentication authentication   = tokenProvider.getAuthentication(tokenReqDto.getAccessToken());
+        Authentication authentication   = tokenProvider.getAuthentication(token);
 
         // 저장소에서 해당 사용자의 refresh token 삭제
         refreshTokenRepository.deleteByKey(authentication.getName());

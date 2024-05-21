@@ -33,8 +33,9 @@ public  class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestBody TokenReqDto requestDto) {
-        authService.logout(requestDto);
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authorizationHeader) {
+        String accessToken = authorizationHeader.substring(7);
+        authService.logout(accessToken);
         return ResponseEntity.ok().build();
     }
    /* @PostMapping("/chatbot")
