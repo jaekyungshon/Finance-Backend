@@ -1,3 +1,4 @@
+
 package com.capstone.finance.Service;
 
 import com.capstone.finance.DAO.MemberRepository;
@@ -69,24 +70,22 @@ public class AuthService {
         // 저장소에서 해당 사용자의 refresh token 삭제
         refreshTokenRepository.deleteByKey(authentication.getName());
     }
-
-
     @Transactional
-    public TokenResDto reissue(String Token) {
+    public TokenResDto reissue(TokenReqDto tokenReqDto) {
         // 1. Refresh Token 검증
-        if (!tokenProvider.validateToken(Token)) {
+        if (!tokenProvider.validateToken(tokenReqDto.getRefreshToken())) {
             throw new RuntimeException("Refresh Token 이 유효하지 않습니다.");
         }
 
         // 2. Access Token 에서 Member ID 가져오기
-        Authentication authentication = tokenProvider.getAuthentication(Token);
+        Authentication authentication = tokenProvider.getAuthentication(tokenReqDto.getAccessToken());
 
         // 3. 저장소에서 Member ID 를 기반으로 Refresh Token 값 가져옴
         RefreshToken refreshToken = refreshTokenRepository.findByKey(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("로그아웃 된 사용자입니다."));
 
         // 4. Refresh Token 일치하는지 검사
-        if (!refreshToken.getValue().equals(Token)) {
+        if (!refreshToken.getValue().equals(tokenReqDto.getRefreshToken())) {
             throw new RuntimeException("토큰의 유저 정보가 일치하지 않습니다.");
         }
 
