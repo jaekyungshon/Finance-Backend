@@ -242,7 +242,7 @@ class ChatEngine:
                 
             ## 1. chatbot_history 전체 레코드 가져오기 ##
             chatbot_history_records_df=self.get_all_records()
-            chatbot_history_records_df = chatbot_history_records_df.sort_values(by='date')
+          # chatbot_history_records_df = chatbot_history_records_df.sort_values(by='date')
             #print(chatbot_history_records_df.tail(4))
             print(f"\t\t[DB연결] chatbot_history 전체 레코드 데이터프레임 생성 완료")
                 
