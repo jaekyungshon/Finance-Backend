@@ -1,0 +1,17 @@
+def execute_cmd(self):
+        df=""
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT * FROM company_info")
+                result=cur.fetchall()
+                df=pd.DataFrame(result)
+        except:
+            print("### [Failed][server_main.py][execute_cmd] Error read table 'company_info' ###")
+        
+        df.columns=['code','company']
+        
+        for e in df.itertuples():
+            #print("############ ",e[1], "#############")
+            #exit(0)
+            subprocess.call(['python','main.py','--mode','train','--stock_code',f'{e[1]}','--rl_method','pg','--net','dnn'])
+            time.sleep(1)

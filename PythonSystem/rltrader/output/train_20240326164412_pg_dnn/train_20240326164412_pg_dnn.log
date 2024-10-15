@@ -1,0 +1,5 @@
+{"mode": "train", "ver": "v1", "name": "20240326164412", "stock_code": ["000100"], "rl_method": "pg", "net": "dnn", "backend": "tensorflow", "start_date": "20220101", "end_date": "20240326", "lr": 0.001, "discount_factor": 0.99, "balance": 100000000}
+[000100] RL:pg NET:dnn LR:0.001 DF:0.99 
+[000100][Epoch 1/2] Epsilon:1.0000 #Expl.:547/547 #Buy:172 #Sell:167 #Hold:208 #Stocks:680 PV:113,495,170 Loss:7.004982 ET:9.7284
+[000100][Epoch 2/2] Epsilon:0.0000 #Expl.:0/547 #Buy:0 #Sell:0 #Hold:547 #Stocks:0 PV:100,000,000 Loss:6.984191 ET:7.6109
+[000100] Elapsed Time:21.5352 Max PV:113,495,170 #Win:1
